@@ -6,18 +6,16 @@ import re
 import asterisk.manager
 
 from config import Config as config
-#from salesforce import SFConnect
-from cdr import CDRFields, CDREvent
+from cdr import CDREvent
 
 
 class AsteriskHandler(object):
     """
     Handle Asterisk management, events, connection.
     """
-  
-    def __init__(self, host = config.Asterisk.HOST, 
-                 login = config.Asterisk.LOGIN, 
-                 password = config.Asterisk.PASSWORD):
+    def __init__(self, host=config.Asterisk.HOST,
+                 login=config.Asterisk.LOGIN,
+                 password=config.Asterisk.PASSWORD):
         self.__host = host
         self.__login = login
         self.__password = password
@@ -26,7 +24,7 @@ class AsteriskHandler(object):
     def connect(self):
 
         try:
-            self.__manager.connect(self.__host) 
+            self.__manager.connect(self.__host)
             self.__manager.login(self.__login, self.__password)
         except asterisk.manager.ManagerSocketException as err:
             errno, reason = err
@@ -38,7 +36,7 @@ class AsteriskHandler(object):
         except asterisk.manager.ManagerException as reason:
             print ("Error: %s" % reason)
             sys.exit(1)
- 
+
     def subscribe_cdr_event(self):
         cdr = CDREvent()
         cdr.set_extensions(self.get_all_extensions())
@@ -65,7 +63,5 @@ class AsteriskHandler(object):
                 ext = splited_line[4]
                 fullname = splited_line[8] + " " + splited_line[10]
                 self.__extensions[ext] = fullname
-                
-        return self.__extensions 
 
-
+        return self.__extensions

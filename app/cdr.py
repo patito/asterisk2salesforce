@@ -1,15 +1,12 @@
 #!/usr/bin/python
 
-import sys
-import re
-
 from salesforce import SalesForceHandler
+
 
 class CDRFields(object):
     """
     Store all fields of event CDR (Asterisk event).
     """
-
     # Fields available
     ACCOUNT_CODE = 'AccountCode'
     DESTINATION_CONTEXT = 'DestinationContext'
@@ -31,7 +28,6 @@ class CDRFields(object):
     EVENT = 'Event'
     CHANNEL = 'Channel'
     UNIQUE_ID = 'UniqueID'
-
 
     @classmethod
     def get_account_code(cls, event):
@@ -78,7 +74,7 @@ class CDRFields(object):
         return event[cls.ANSWER_TIME]
 
     @classmethod
-    def get_last_application(self, event):
+    def get_last_application(cls, event):
         return event[cls.LAST_APPLICATION]
 
     @classmethod
@@ -117,7 +113,7 @@ class CDREvent(object):
 
     def __init__(self):
         self.__sf = SalesForceHandler()
- 
+
     def handle_internal(self):
 
         print "============================================================="
@@ -143,7 +139,7 @@ class CDREvent(object):
         else:
             print "Number does not exist!"
         print "============================================================="
- 
+
     def handle_external(self):
 
         print "============================================================="
@@ -169,7 +165,6 @@ class CDREvent(object):
         else:
             print "Number does not exist!"
         print "============================================================="
-  
 
     def callback(self, event, manager):
         self.duration = self.get_field(event, CDRFields.DURATION)
@@ -177,28 +172,32 @@ class CDREvent(object):
         self.destination = self.get_field(event, CDRFields.DESTINATION)
         self.start_time = self.get_field(event, CDRFields.START_TIME)
         self.end_time = self.get_field(event, CDRFields.END_TIME)
-        self.destination_context = self.get_field(event, CDRFields.DESTINATION_CONTEXT)
+        self.destination_context = self.get_field(
+            event,
+            CDRFields.DESTINATION_CONTEXT
+        )
         self.disposition = self.get_field(event, CDRFields.DISPOSITION)
-   
-        print "Disposition = %s" % self.disposition 
+        print "Disposition = %s" % self.disposition
         if ((self.destination_context == "from-internal") and
            (len(self.destination) > 4) and (self.disposition != "NO ANSWER")):
-           self.handle_internal()
+            self.handle_internal()
         elif (self.destination_context == "from-did-direct"):
-           self.handle_external()
+            self.handle_external()
         else:
             print "nothing"
 
-
-    def debug(self):
+    def debug(self, event):
         print ("Received event[%s]" % event.name)
         print "Duration    = %s" % self.get_field(event, CDRFields.DURATION)
         print "Source      = %s" % self.get_field(event, CDRFields.SOURCE)
         print "Destination = %s" % self.get_field(event, CDRFields.DESTINATION)
         print "StartTime   = %s" % self.get_field(event, CDRFields.START_TIME)
         print "EndTime     = %s" % self.get_field(event, CDRFields.END_TIME)
-        print "DestinationContext = %s" % self.get_field(event, CDRFields.DESTINATION_CONTEXT)
- 
+        print "DestinationContext = %s" % self.get_field(
+            event,
+            CDRFields.DESTINATION_CONTEXT
+        )
+
     def get_field(self, event, field):
         return event[field]
 
