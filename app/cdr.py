@@ -147,7 +147,6 @@ class CDREvent(object):
 
     def handle_internal(self):
 
-        print "from-internal"
         if self.source in self.__extensions:
             name = self.__extensions[self.source]
             user_id = self.__sf.get_user_id(name)
@@ -163,6 +162,8 @@ class CDREvent(object):
                                          contact_id,
                                          user_id,
                                          self.make_summary())
+                else:
+                    print "Number of Accounts found is %d" % accounts
             else:
                 contact_id = self.__sf.get_contact_id(self.destination)
                 account_id = self.__sf.get_account_id(self.destination)
@@ -175,7 +176,6 @@ class CDREvent(object):
 
     def handle_external(self):
 
-        print "from-did-direct"
         if self.destination in self.__extensions:
             name = self.__extensions[self.destination]
             user_id = self.__sf.get_user_id(name)
@@ -191,6 +191,8 @@ class CDREvent(object):
                                          contact_id,
                                          user_id,
                                          self.make_summary())
+                else:
+                    print "Number of Accounts found is %d" % accounts
             else:
                 contact_id = self.__sf.get_contact_id(self.source)
                 account_id = self.__sf.get_account_id(self.source)
@@ -225,7 +227,7 @@ class CDREvent(object):
         elif (self.destination_context == "from-did-direct"):
             self.handle_external()
         else:
-            print "nothing"
+            print "Nothing to do!"
 
     def debug(self, event):
         klass = CDRFields

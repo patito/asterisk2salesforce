@@ -21,15 +21,13 @@ class SalesForceHandler(object):
                                security_token=token)
 
     def get_user_id(self, name):
-        print name
         query = "SELECT Id FROM User WHERE Name LIKE '" + name + "'"
         result = self.__sf.query_all(query)["records"]
         if (len(result) == 1):
-            print result[0]['Id']
+            return result[0]['Id']
 
     def get_number_contacts(self, phone):
         term = get_number_term(phone)
-        print "Term = %s" % term
         query = "SELECT AccountId FROM Contact WHERE Phone LIKE '" + term +\
                 "' OR MobilePhone LIKE '" + term + "'"
 
