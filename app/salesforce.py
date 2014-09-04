@@ -4,6 +4,8 @@ from config import Config
 from simple_salesforce import Salesforce
 from utils import get_number_term
 
+import time
+
 
 class SalesForceHandler(object):
 
@@ -42,22 +44,23 @@ class SalesForceHandler(object):
         results = self.__sf.query_all(query)["records"]
         return len(results)
 
-    def create_task(self):
-        """
-        task = self.__sf.Task.create({
+    def create_task(self, info):
+        print "Creating task"
+        task = ({
             'Type': 'Called',
-            'WhatId': accountId,
-            'OwnerID': userId,
-            'Subject': subject,
+            'WhatId': info['AccountId'],
+            'OwnerID': info['UserId'],
+            'Subject': 'Call',
             'Status': 'Completed',
-            'WhoId': contactId,
+            'WhoId': info['ContactId'],
             'Description': 'A call has been logged automagically.',
             'Status': 'Completed',
             'Priority': 'Normal',
-            'Summary__c': summary,
+            'Summary__c': info['Summary'],
             'ActivityDate': time.strftime('%Y-%m-%d')
         })
-        """
+        print task
+        # task = self.__sf.Task.create(task)
         pass
 
     def get_account_id_from_account(self, phone):

@@ -1,12 +1,14 @@
 #!/usr/bin/python
 
 from salesforce import SalesForceHandler
+import datetime
 
 
 class CDRFields(object):
     """
     Store all fields of event CDR (Asterisk event).
     """
+
     # Fields available
     ACCOUNT_CODE = 'AccountCode'
     DESTINATION_CONTEXT = 'DestinationContext'
@@ -30,80 +32,87 @@ class CDRFields(object):
     UNIQUE_ID = 'UniqueID'
 
     @classmethod
+    def get_field(cls, event, field):
+        if event.has_header(field):
+            return event[field]
+        else:
+            return None
+
+    @classmethod
     def get_account_code(cls, event):
-        return event[cls.ACCOUNT_CODE]
+        return cls.get_field(event, cls.ACCOUNT_CODE)
 
     @classmethod
     def get_destination_context(cls, event):
-        return event[cls.DESTINATION_CONTEXT]
+        return cls.get_field(event, cls.DESTINATION_CONTEXT)
 
     @classmethod
     def get_duration(cls, event):
-        return event[cls.DURATION]
+        return cls.get_field(event, cls.DURATION)
 
     @classmethod
     def get_caller_id(cls, event):
-        return event[cls.CALLER_ID]
+        return cls.get_field(event, cls.CALLER_ID)
 
     @classmethod
     def get_last_data(cls, event):
-        return event[cls.LAST_DATA]
+        return cls.get_field(event, cls.LAST_DATA)
 
     @classmethod
     def get_destination(cls, event):
-        return event[cls.DESTINATION]
+        return cls.get_field(event, cls.DESTINATION)
 
     @classmethod
     def get_ama_flags(cls, event):
-        return event[cls.AMA_FLAGS]
+        return cls.get_field(event, cls.AMA_FLAGS)
 
     @classmethod
     def get_disposition(cls, event):
-        return event[cls.DISPOSITION]
+        return cls.get_field(event, cls.DISPOSITION)
 
     @classmethod
     def get_destination_channel(cls, event):
-        return event[cls.DESTINATION_CHANNEL]
+        return cls.get_field(event, cls.DESTINATION_CHANNEL)
 
     @classmethod
     def get_source(cls, event):
-        return event[cls.SOURCE]
+        return cls.get_field(event, cls.SOURCE)
 
     @classmethod
     def get_answer_time(cls, event):
-        return event[cls.ANSWER_TIME]
+        return cls.get_field(event, cls.ANSWER_TIME)
 
     @classmethod
     def get_last_application(cls, event):
-        return event[cls.LAST_APPLICATION]
+        return cls.get_field(event, cls.LAST_APPLICATION)
 
     @classmethod
     def get_start_time(cls, event):
-        return event[cls.START_TIME]
+        return cls.get_field(event, cls.START_TIME)
 
     @classmethod
     def get_billable_seconds(cls, event):
-        return event[cls.BILLABLE_SECONDS]
+        return cls.get_field(event, cls.BILLABLE_SECONDS)
 
     @classmethod
     def get_privilege(cls, event):
-        return event[cls.PRIVILEGE]
+        return cls.get_field(event, cls.PRIVILEGE)
 
     @classmethod
     def get_user_field(cls, event):
-        return event[cls.USER_FIELD]
+        return cls.get_field(event, cls.USER_FIELD)
 
     @classmethod
     def get_end_time(cls, event):
-        return event[cls.END_TIME]
+        return cls.get_field(event, cls.END_TIME)
 
     @classmethod
     def get_channel(cls, event):
-        return event[cls.CHANNEL]
+        return cls.get_field(event, cls.CHANNEL)
 
     @classmethod
     def get_unique_id(cls, event):
-        return event[cls.UNIQUE_ID]
+        return cls.get_field(event, cls.UNIQUE_ID)
 
 
 class CDREvent(object):
@@ -114,9 +123,30 @@ class CDREvent(object):
     def __init__(self):
         self.__sf = SalesForceHandler()
 
+    def __register_call(self, account_id, contact_id, user_id, summary):
+        info = {
+            'AccountId': account_id,
+            'ContactId': contact_id,
+            'UserId': user_id,
+            'Summary': summary
+        }
+        self.__sf.create_task(info)
+
+    def make_summary(self):
+
+        if self.disposition == "NO ANSWER":
+            return "No Answer"
+
+        billable_seconds = CDRFields.get_billable_seconds(self.event)
+        if self.last_app == "VoiceMail":
+            str_time = str(datetime.timedelta(seconds=int(billable_seconds)))
+            return "Voicemail: " + str_time
+
+        str_time = str(datetime.timedelta(seconds=int(billable_seconds)))
+        return "Duration: " + str_time
+
     def handle_internal(self):
 
-        print "============================================================="
         print "from-internal"
         if self.source in self.__extensions:
             name = self.__extensions[self.source]
@@ -129,20 +159,22 @@ class CDREvent(object):
                 if (accounts == 1):
                     contact_id = self.__sf.get_contact_id(self.destination)
                     account_id = self.__sf.get_account_id(self.destination)
-                    print "Contact ID = %s" % contact_id
-                    print "Account ID = %s" % account_id
+                    self.__register_call(account_id,
+                                         contact_id,
+                                         user_id,
+                                         self.make_summary())
             else:
                 contact_id = self.__sf.get_contact_id(self.destination)
                 account_id = self.__sf.get_account_id(self.destination)
-                print "Contact ID = %s" % contact_id
-                print "Account ID = %s" % account_id
+                self.__register_call(account_id,
+                                     contact_id,
+                                     user_id,
+                                     self.make_summary())
         else:
             print "Number does not exist!"
-        print "============================================================="
 
     def handle_external(self):
 
-        print "============================================================="
         print "from-did-direct"
         if self.destination in self.__extensions:
             name = self.__extensions[self.destination]
@@ -155,29 +187,38 @@ class CDREvent(object):
                 if accounts == 1:
                     contact_id = self.__sf.get_contact_id(self.source)
                     account_id = self.__sf.get_account_id(self.source)
-                    print "Contact ID = %s" % contact_id
-                    print "Account ID = %s" % account_id
+                    self.__register_call(account_id,
+                                         contact_id,
+                                         user_id,
+                                         self.make_summary())
             else:
                 contact_id = self.__sf.get_contact_id(self.source)
                 account_id = self.__sf.get_account_id(self.source)
-                print "Contact ID = %s" % contact_id
-                print "Account ID = %s" % account_id
+                self.__register_call(account_id,
+                                     contact_id,
+                                     user_id,
+                                     self.make_summary())
         else:
             print "Number does not exist!"
-        print "============================================================="
+
+    def save_event_fields(self, event):
+        klass = CDRFields
+        self.event = event
+        self.duration = klass.get_field(event, klass.DURATION)
+        self.source = klass.get_field(event, klass.SOURCE)
+        self.destination = klass.get_field(event, klass.DESTINATION)
+        self.start_time = klass.get_field(event, klass.START_TIME)
+        self.end_time = klass.get_field(event, klass.END_TIME)
+        self.destination_context = klass.get_field(
+            event,
+            klass.DESTINATION_CONTEXT
+        )
+        self.last_app = klass.get_field(event, klass.LAST_APPLICATION)
+        self.disposition = klass.get_field(event, klass.DISPOSITION)
 
     def callback(self, event, manager):
-        self.duration = self.get_field(event, CDRFields.DURATION)
-        self.source = self.get_field(event, CDRFields.SOURCE)
-        self.destination = self.get_field(event, CDRFields.DESTINATION)
-        self.start_time = self.get_field(event, CDRFields.START_TIME)
-        self.end_time = self.get_field(event, CDRFields.END_TIME)
-        self.destination_context = self.get_field(
-            event,
-            CDRFields.DESTINATION_CONTEXT
-        )
-        self.disposition = self.get_field(event, CDRFields.DISPOSITION)
-        print "Disposition = %s" % self.disposition
+        self.save_event_fields(event)
+        self.debug(event)
         if ((self.destination_context == "from-internal") and
            (len(self.destination) > 4) and (self.disposition != "NO ANSWER")):
             self.handle_internal()
@@ -187,19 +228,18 @@ class CDREvent(object):
             print "nothing"
 
     def debug(self, event):
-        print ("Received event[%s]" % event.name)
-        print "Duration    = %s" % self.get_field(event, CDRFields.DURATION)
-        print "Source      = %s" % self.get_field(event, CDRFields.SOURCE)
-        print "Destination = %s" % self.get_field(event, CDRFields.DESTINATION)
-        print "StartTime   = %s" % self.get_field(event, CDRFields.START_TIME)
-        print "EndTime     = %s" % self.get_field(event, CDRFields.END_TIME)
-        print "DestinationContext = %s" % self.get_field(
+        klass = CDRFields
+        print "Received event[%s]" % event.name
+        print "Duration    = %s" % klass.get_field(event, klass.DURATION)
+        print "Source      = %s" % klass.get_source(event)
+        print "Destination = %s" % klass.get_field(event, klass.DESTINATION)
+        print "StartTime   = %s" % klass.get_field(event, klass.START_TIME)
+        print "EndTime     = %s" % klass.get_field(event, klass.END_TIME)
+        print "Disposition = %s" % klass.get_field(event, klass.DISPOSITION)
+        print "DestinationContext = %s" % klass.get_field(
             event,
-            CDRFields.DESTINATION_CONTEXT
+            klass.DESTINATION_CONTEXT
         )
-
-    def get_field(self, event, field):
-        return event[field]
 
     def set_extensions(self, extensions):
         self.__extensions = extensions

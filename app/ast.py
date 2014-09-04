@@ -49,10 +49,9 @@ class AsteriskHandler(object):
         self.__manager.logoff()
 
     def get_all_extensions(self):
-        """
-        Save extensions and full name in a dictionary.
-        extensions[ext] = fullname
-        """
+        # Save extensions and full name in a dictionary.
+        # extensions[ext] = fullname
+
         command = self.__manager.command('database showkey cidname')
         lines = command.data.split('\n')
         self.__extensions = {}
