@@ -6,6 +6,38 @@ from utils import get_number_term
 
 import time
 
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+import smtplib
+
+
+def send_email(to, name, task_id, account_name, instance):
+    msg = MIMEMultipart()
+
+    print "To = %s" % to
+    print "From = %s" % Config.SalesForce.USERNAME
+    print "Name = %s" % name
+    print "TaskId = %s" % task_id
+    print "Account_name = %s" % account_name
+
+    msg['Subject'] = 'Your call with ' + account_name + '.'
+    msg['From'] = Config.SalesForce.USERNAME
+    msg['To'] = to
+
+    body = "Hi " + name +\
+           ",\nyou have just finished a call which" +\
+           "has been logged in SalesForce.\n\nPlease update" +\
+           "the entry with details about the call: http://" +\
+           instance + "/" + task_id + "/e.\n\n----" +\
+           "THIS IS AN AUTOMATICALLY GENERATED MESSAGE. ----"
+
+    msg.attach(MIMEText(body, 'plain'))
+    s = smtplib.SMTP('mail.brandwatch.com')
+
+    s.sendmail(Config.SalesForce.USERNAME, to, msg.as_string())
+    s.quit()
+
 
 class SalesForceHandler(object):
 
@@ -25,6 +57,16 @@ class SalesForceHandler(object):
         result = self.__sf.query_all(query)["records"]
         if (len(result) == 1):
             return result[0]['Id']
+        return None
+
+    def get_shared_users(self, phone):
+        shared_users = Config.SalesForce.SHARED
+
+        print shared_users, type(phone)
+        for i in shared_users:
+            if phone in shared_users[i]:
+                return i
+        return None
 
     def get_number_contacts(self, phone):
         term = get_number_term(phone)
@@ -44,7 +86,7 @@ class SalesForceHandler(object):
 
     def create_task(self, info):
         print "Creating task"
-        task = ({
+        task = self.__sf.Task.create({
             'Type': 'Called',
             'WhatId': info['AccountId'],
             'OwnerID': info['UserId'],
@@ -57,9 +99,15 @@ class SalesForceHandler(object):
             'Summary__c': info['Summary'],
             'ActivityDate': time.strftime('%Y-%m-%d')
         })
-        print task
-        # task = self.__sf.Task.create(task)
-        pass
+
+        name = self.__sf.User.get(info['UserId'])['FirstName']
+        to = self.__sf.User.get(info['UserId'])['Email']
+        task_id = self.__sf.Task.get(task['id'])
+
+        account_name = self.__sf.Account.get(task_id['WhatId'])['Name']
+
+        send_email(to, name, task['id'], account_name,
+                   Config.SalesForce.INSTANCE)
 
     def get_account_id_from_account(self, phone):
         term = get_number_term(phone)

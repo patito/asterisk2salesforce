@@ -149,7 +149,13 @@ class CDREvent(object):
 
         if self.source in self.__extensions:
             name = self.__extensions[self.source]
-            user_id = self.__sf.get_user_id(name)
+            user_id = self.__sf.get_shared_users(self.source)
+            if not user_id:
+                user_id = self.__sf.get_user_id(name)
+
+            if not user_id:
+                return
+
             contacts = self.__sf.get_number_contacts(self.destination)
             accounts = self.__sf.get_number_accounts(self.destination)
             print "Id = %s | Name = %s | Contacts = %d | Accounts = %d" %\
@@ -178,7 +184,14 @@ class CDREvent(object):
 
         if self.destination in self.__extensions:
             name = self.__extensions[self.destination]
-            user_id = self.__sf.get_user_id(name)
+            user_id = self.__sf.get_shared_users(self.source)
+            if not user_id:
+                user_id = self.__sf.get_user_id(name)
+
+            if not user_id:
+                print "None UserID found"
+                return
+
             contacts = self.__sf.get_number_contacts(self.source)
             accounts = self.__sf.get_number_accounts(self.source)
             print "Id = %s | Name = %s | Contacts = %d | Accounts = %d" %\
