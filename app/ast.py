@@ -24,6 +24,7 @@ class AsteriskHandler(object):
     def connect(self):
 
         try:
+            print self.__host, self.__login, self.__password
             self.__manager.connect(self.__host)
             self.__manager.login(self.__login, self.__password)
         except asterisk.manager.ManagerSocketException as err:
