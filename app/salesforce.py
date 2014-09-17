@@ -54,7 +54,11 @@ class SalesForceHandler(object):
 
     def get_user_id(self, name):
         query = "SELECT Id FROM User WHERE Name LIKE '" + name + "'"
-        result = self.__sf.query_all(query)["records"]
+        result = self.__sf.query_all(query)
+
+        if 'records' in result:
+            result = self.__sf.query_all(query)["records"]
+
         if (len(result) == 1):
             return result[0]['Id']
         return None
@@ -73,7 +77,9 @@ class SalesForceHandler(object):
         query = "SELECT AccountId FROM Contact WHERE Phone LIKE '" + term +\
                 "' OR MobilePhone LIKE '" + term + "'"
 
-        results = self.__sf.query_all(query)["records"]
+        results = self.__sf.query_all(query)
+        if 'records' in results:
+            results = self.__sf.query_all(query)["records"]
 
         return len(results)
 
@@ -81,7 +87,11 @@ class SalesForceHandler(object):
 
         term = get_number_term(phone)
         query = "SELECT Id FROM Account WHERE Phone LIKE '" + term + "'"
-        results = self.__sf.query_all(query)["records"]
+
+        results = self.__sf.query_all(query)
+        if 'records' in results:
+            results = self.__sf.query_all(query)["records"]
+
         return len(results)
 
     def create_task(self, info):
@@ -114,7 +124,11 @@ class SalesForceHandler(object):
 
         query_account = "SELECT Id FROM Account WHERE Phone LIKE '"\
                         + term + "'"
-        accounts = self.__sf.query_all(query_account)["records"]
+
+        accounts = self.__sf.query_all(query_account)
+        if 'records' in accounts:
+            accounts = self.__sf.query_all(query_account)["records"]
+
         if (len(accounts) == 1):
             return accounts[0]['Id']
         else:
@@ -125,7 +139,10 @@ class SalesForceHandler(object):
 
         query_contact = "SELECT AccountId FROM Contact WHERE Phone LIKE '"\
                         + term + "'"
-        accounts = self.__sf.query_all(query_contact)["records"]
+
+        accounts = self.__sf.query_all(query_contact)
+        if 'records' in accounts:
+            accounts = self.__sf.query_all(query_contact)["records"]
 
         if (len(accounts) == 1):
             return accounts[0]['AccountId']
@@ -143,7 +160,10 @@ class SalesForceHandler(object):
 
         query_mobile = "SELECT AccountId FROM Contact WHERE MobilePhone LIKE '"\
                        + term + "'"
-        accounts = self.__sf.query_all(query_mobile)["records"]
+
+        accounts = self.__sf.query_all(query_mobile)
+        if 'records' in accounts:
+            accounts = self.__sf.query_all(query_mobile)["records"]
 
         if (len(accounts) == 1):
             return accounts[0]['AccountId']
@@ -174,7 +194,10 @@ class SalesForceHandler(object):
 
         query = "SELECT Id FROM Contact WHERE Phone LIKE '" + term +\
                 "' OR MobilePhone LIKE '" + term + "'"
-        results = self.__sf.query_all(query)["records"]
+
+        results = self.__sf.query_all(query)
+        if 'records' in results:
+            results = self.__sf.query_all(query)["records"]
 
         if (len(results) == 1):
             return results[0]['Id']
