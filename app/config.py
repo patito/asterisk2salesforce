@@ -11,3 +11,7 @@ class Config:
         PASSWORD = 'password'
         TOKEN = 'ring'
         INSTANCE = 'instance'
+        SHARED = {
+            'XXXXXXXXXXX': ["1111", "2222", "3333", "4444"],
+            'XXXXXXXXXXX': ["1111"]
+        }
