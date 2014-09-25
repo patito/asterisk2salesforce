@@ -234,6 +234,11 @@ class CDREvent(object):
     def callback(self, event, manager):
         self.save_event_fields(event)
         self.debug(event)
+
+        if (self.destination is None) or (self.source is None):
+            print "Destination or Source is None"
+            return
+
         if ((self.destination_context == "from-internal") and
            (len(self.destination) > 4) and (self.disposition != "NO ANSWER")):
             self.handle_internal()
